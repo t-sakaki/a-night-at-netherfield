@@ -1,6 +1,7 @@
 import type { LocalizedText } from "@/data/characters";
 
 export type InterludeLine = {
+  id: string;
   speaker: "collins" | "elizabeth" | "narration";
   text: LocalizedText;
   holdMs: number;
@@ -13,6 +14,7 @@ export type InterludeLine = {
  */
 export const COLLINS_INTERLUDE: InterludeLine[] = [
   {
+    id: "collins-approach",
     speaker: "narration",
     holdMs: 2200,
     text: {
@@ -21,6 +23,7 @@ export const COLLINS_INTERLUDE: InterludeLine[] = [
     },
   },
   {
+    id: "collins-secured",
     speaker: "collins",
     holdMs: 3400,
     text: {
@@ -29,6 +32,7 @@ export const COLLINS_INTERLUDE: InterludeLine[] = [
     },
   },
   {
+    id: "elizabeth-forgotten",
     speaker: "elizabeth",
     holdMs: 2600,
     text: {
@@ -37,6 +41,7 @@ export const COLLINS_INTERLUDE: InterludeLine[] = [
     },
   },
   {
+    id: "collins-flatter",
     speaker: "collins",
     holdMs: 3000,
     text: {
@@ -45,6 +50,7 @@ export const COLLINS_INTERLUDE: InterludeLine[] = [
     },
   },
   {
+    id: "collins-offers-arm",
     speaker: "narration",
     holdMs: 2400,
     text: {

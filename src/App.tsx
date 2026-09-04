@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { AudioManager } from "@/audio/AudioManager";
+import { VoiceManager } from "@/audio/VoiceManager";
 import BallroomCanvas, { type NpcTarget, type PlayerFigure } from "@/components/BallroomCanvas";
 import DanceRequestPrompt from "@/components/DanceRequestPrompt";
 import InterludeOverlay from "@/components/InterludeOverlay";
 import TitleScreen from "@/components/TitleScreen";
 import { CHARACTERS, type LocalizedText } from "@/data/characters";
-import { COLLINS_INTERLUDE } from "@/data/collinsInterlude";
+import { COLLINS_INTERLUDE, type InterludeLine } from "@/data/collinsInterlude";
 import {
   DARCY_ACCEPT_RESULT,
   DARCY_ASK,
@@ -47,6 +48,8 @@ export default function App() {
   const danceSystemRef = useRef(new DanceSystem());
   const audioRef = useRef<AudioManager | null>(null);
   if (!audioRef.current) audioRef.current = new AudioManager();
+  const voiceRef = useRef<VoiceManager | null>(null);
+  if (!voiceRef.current) voiceRef.current = new VoiceManager();
   const keysRef = useRef<Record<string, boolean>>({});
   const joystickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -167,6 +170,11 @@ export default function App() {
     ]);
     setBeat("resolved");
     audioRef.current?.setMood(decision === "accept" ? "resolved-accept" : "resolved-decline");
+    voiceRef.current?.play(
+      decision === "accept" ? "darcy-accept-result" : "darcy-decline-result",
+      "en",
+      decision === "accept" ? DARCY_ACCEPT_RESULT.en : DARCY_DECLINE_RESULT.en,
+    );
   }, []);
 
   const handleNpcArrived = useCallback((id: string) => {
@@ -174,7 +182,12 @@ export default function App() {
       setDarcyRemainingMs(DARCY_RESPONSE_MS);
       setBeat("darcy-prompt");
       audioRef.current?.setMood("darcy-prompt");
+      voiceRef.current?.play("darcy-ask", "en", DARCY_ASK.en);
     }
+  }, []);
+
+  const handleCollinsLineChange = useCallback((line: InterludeLine) => {
+    voiceRef.current?.play(line.id, "en", line.text.en);
   }, []);
 
   // Darcy's response window: silence resolves to "accept", matching the
@@ -250,7 +263,11 @@ export default function App() {
       )}
 
       {beat === "collins-interlude" && (
-        <InterludeOverlay lines={COLLINS_INTERLUDE} onComplete={handleCollinsComplete} />
+        <InterludeOverlay
+          lines={COLLINS_INTERLUDE}
+          onComplete={handleCollinsComplete}
+          onLineChange={handleCollinsLineChange}
+        />
       )}
 
       {beat === "darcy-prompt" && (

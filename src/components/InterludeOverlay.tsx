@@ -4,6 +4,7 @@ import type { InterludeLine } from "@/data/collinsInterlude";
 type Props = {
   lines: InterludeLine[];
   onComplete: () => void;
+  onLineChange?: (line: InterludeLine) => void;
 };
 
 /**
@@ -11,7 +12,7 @@ type Props = {
  * choice offered here, only pacing control (click/focus + Enter/Space
  * shortens the hold, matching the "no real choice yet" beat it renders).
  */
-export default function InterludeOverlay({ lines, onComplete }: Props) {
+export default function InterludeOverlay({ lines, onComplete, onLineChange }: Props) {
   const [index, setIndex] = useState(0);
   const advancingRef = useRef(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -20,6 +21,7 @@ export default function InterludeOverlay({ lines, onComplete }: Props) {
     advancingRef.current = false;
     buttonRef.current?.focus();
     const line = lines[index];
+    onLineChange?.(line);
     const timer = setTimeout(advance, line.holdMs);
     return () => clearTimeout(timer);
   }, [index]);
