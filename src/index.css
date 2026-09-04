@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #14100c;
+  color: #f2e9d8;
+  font-family: Georgia, "Times New Roman", serif;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* LivingPortrait procedural-face animation */
+.lp-body {
+  animation: lp-sway 6.5s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.lp-head {
+  animation: lp-nod 5.5s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+}
+.lp-lid {
+  animation: lp-blink 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+@keyframes lp-sway {
+  from {
+    transform: rotate(-1.4deg) translateY(0);
+  }
+  to {
+    transform: rotate(1.4deg) translateY(-0.6px);
+  }
+}
+@keyframes lp-nod {
+  from {
+    transform: rotate(1.6deg);
+  }
+  to {
+    transform: rotate(-1.6deg);
+  }
+}
+@keyframes lp-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(0);
+  }
+  95%,
+  97% {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-body,
+  .lp-head,
+  .lp-lid {
+    animation: none;
+  }
+  .lp-lid {
+    transform: scaleY(0);
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "a-night-at-netherfield",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "PORT=5173 BASE_PATH=/ vite",
+    "build": "PORT=5173 BASE_PATH=/ vite build",
+    "preview": "PORT=4173 BASE_PATH=/ vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "test:e2e": "playwright test",
+    "vo": "tsx scripts/generate-vo.ts"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2",
+    "vite": "^7.3.2"
+  }
+}
