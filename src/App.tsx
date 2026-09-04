@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { AudioManager } from "@/audio/AudioManager";
 import BallroomCanvas, { type NpcTarget, type PlayerFigure } from "@/components/BallroomCanvas";
 import DanceRequestPrompt from "@/components/DanceRequestPrompt";
 import InterludeOverlay from "@/components/InterludeOverlay";
@@ -44,6 +45,8 @@ export default function App() {
   const [reveal, setReveal] = useState<LocalizedText | null>(null);
 
   const danceSystemRef = useRef(new DanceSystem());
+  const audioRef = useRef<AudioManager | null>(null);
+  if (!audioRef.current) audioRef.current = new AudioManager();
   const keysRef = useRef<Record<string, boolean>>({});
   const joystickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -121,6 +124,7 @@ export default function App() {
     if (phase === "ball" && beat === "free-roam" && elapsedMinutes >= COLLINS_TRIGGER_MINUTE) {
       setAnchor(playerRef.current);
       setBeat("collins-interlude");
+      audioRef.current?.setMood("collins-interlude");
     }
   }, [phase, beat, elapsedMinutes]);
 
@@ -132,6 +136,7 @@ export default function App() {
     ]);
     setMinglingRemainingMs(MINGLING_MS);
     setBeat("mingling");
+    audioRef.current?.setMood("mingling");
   }, []);
 
   // Mingling: a real-time countdown to the next set, player still free to walk.
@@ -146,6 +151,7 @@ export default function App() {
         settled = true;
         setAnchor(playerRef.current);
         setBeat("darcy-approach");
+        audioRef.current?.setMood("darcy-approach");
       }
     }, 100);
     return () => clearInterval(id);
@@ -160,12 +166,14 @@ export default function App() {
       { time: "the fourth dance", text: composeEveningNote({ collins: "done", darcy: outcome }) },
     ]);
     setBeat("resolved");
+    audioRef.current?.setMood(decision === "accept" ? "resolved-accept" : "resolved-decline");
   }, []);
 
   const handleNpcArrived = useCallback((id: string) => {
     if (id === "darcy" && beatRef.current === "darcy-approach") {
       setDarcyRemainingMs(DARCY_RESPONSE_MS);
       setBeat("darcy-prompt");
+      audioRef.current?.setMood("darcy-prompt");
     }
   }, []);
 
@@ -220,8 +228,14 @@ export default function App() {
     joystickRef.current = vec;
   }, []);
 
+  const beginEvening = useCallback(() => {
+    audioRef.current?.start();
+    audioRef.current?.setMood("free-roam");
+    setPhase("ball");
+  }, []);
+
   if (phase === "title") {
-    return <TitleScreen onBegin={() => setPhase("ball")} />;
+    return <TitleScreen onBegin={beginEvening} />;
   }
 
   return (
