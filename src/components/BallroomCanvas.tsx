@@ -1,23 +1,37 @@
 import { useEffect, useRef } from "react";
 import { drawBallroom, type BallroomFigure } from "@/render/ballroom";
-import type { Point } from "@/systems/movement";
+import { stepToward, type Point } from "@/systems/movement";
 
 export type PlayerFigure = Point & { facing: number; moving: boolean };
 
+export type NpcTarget = {
+  id: string;
+  x: number;
+  y: number;
+  kind: "lady" | "gent";
+  color: string;
+  label?: string;
+  /** Starting position the first time this id appears; ignored afterwards. */
+  spawnAt?: Point;
+};
+
 type Props = {
   player: PlayerFigure;
-  npcs: BallroomFigure[];
+  npcTargets: NpcTarget[];
+  /** Fires once per id, on the frame it first reaches its target. */
+  onNpcArrived?: (id: string) => void;
 };
 
 const ISO_ANGLE = Math.PI / 6;
 const ZOOM_MIN = 0.72;
 const ZOOM_MAX = 1.42;
+const NPC_SPEED = 2.4; // world units per second
 
-export default function BallroomCanvas({ player, npcs }: Props) {
+export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const zoomRef = useRef(1);
-  const propsRef = useRef({ player, npcs });
-  propsRef.current = { player, npcs };
+  const propsRef = useRef({ player, npcTargets, onNpcArrived });
+  propsRef.current = { player, npcTargets, onNpcArrived };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -49,9 +63,15 @@ export default function BallroomCanvas({ player, npcs }: Props) {
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
+    const npcState = new Map<string, { x: number; y: number; face: number; arrived: boolean }>();
+    let lastTick = performance.now();
+
     let raf = 0;
-    const draw = () => {
-      const { player: p, npcs: n } = propsRef.current;
+    const draw = (now: number) => {
+      const dt = Math.min(0.05, (now - lastTick) / 1000);
+      lastTick = now;
+
+      const { player: p, npcTargets: targets, onNpcArrived: onArrived } = propsRef.current;
       const isPhone = width < 700;
       const baseScale = (isPhone ? 30 : 38) * zoomRef.current;
       const figScale = Math.max(isPhone ? 1.05 : 0.9, baseScale / 34);
@@ -66,8 +86,42 @@ export default function BallroomCanvas({ player, npcs }: Props) {
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      const npcFigures: BallroomFigure[] = targets.map((t) => {
+        let s = npcState.get(t.id);
+        if (!s) {
+          const start = t.spawnAt ?? { x: t.x, y: t.y };
+          s = { x: start.x, y: start.y, face: 0, arrived: false };
+          npcState.set(t.id, s);
+        }
+        const { point, arrived } = stepToward(
+          { x: s.x, y: s.y },
+          { x: t.x, y: t.y },
+          NPC_SPEED * dt,
+        );
+        if (point.x - s.x > 0.001) s.face = 1;
+        else if (point.x - s.x < -0.001) s.face = -1;
+        s.x = point.x;
+        s.y = point.y;
+        if (arrived && !s.arrived) {
+          s.arrived = true;
+          onArrived?.(t.id);
+        } else if (!arrived) {
+          s.arrived = false;
+        }
+        return {
+          id: t.id,
+          x: s.x,
+          y: s.y,
+          kind: t.kind,
+          color: t.color,
+          label: t.label,
+          face: s.face,
+          moving: !arrived,
+        };
+      });
+
       const figures: BallroomFigure[] = [
-        ...n,
+        ...npcFigures,
         {
           id: "elizabeth",
           x: p.x,
@@ -89,7 +143,7 @@ export default function BallroomCanvas({ player, npcs }: Props) {
         figScale,
         isPhone,
         figures,
-        time: performance.now() / 1000,
+        time: now / 1000,
       });
 
       raf = requestAnimationFrame(draw);
