@@ -1,11 +1,6 @@
-import type { LocalizedText } from "@/data/characters";
+import type { InterludeLine } from "@/narrative/interlude";
 
-export type InterludeLine = {
-  id: string;
-  speaker: "collins" | "elizabeth" | "narration";
-  text: LocalizedText;
-  holdMs: number;
-};
+export type { InterludeLine } from "@/narrative/interlude";
 
 /**
  * In the novel, Mr. Collins secures Elizabeth for "the two first" dances

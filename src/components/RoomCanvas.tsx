@@ -1,24 +1,17 @@
 import { useEffect, useRef } from "react";
-import { drawBallroom, type BallroomFigure } from "@/render/ballroom";
-import { stepToward, type Point } from "@/systems/movement";
+import { drawBallroom } from "@/render/ballroom";
+import { drawCardRoom } from "@/render/cardRoom";
+import { drawSupperRoom } from "@/render/supperRoom";
+import type { RoomFigure } from "@/render/shared";
+import { stepToward } from "@/systems/movement";
+import type { NpcTarget, PlayerFigure, RoomId } from "@/systems/room";
 
-export type PlayerFigure = Point & { facing: number; moving: boolean };
-
-export type NpcTarget = {
-  id: string;
-  x: number;
-  y: number;
-  kind: "lady" | "gent";
-  color: string;
-  label?: string;
-  /** Starting position the first time this id appears; ignored afterwards. */
-  spawnAt?: Point;
-};
+export type { NpcTarget, PlayerFigure, RoomId } from "@/systems/room";
 
 type Props = {
+  roomId: RoomId;
   player: PlayerFigure;
   npcTargets: NpcTarget[];
-  /** Fires once per id, on the frame it first reaches its target. */
   onNpcArrived?: (id: string) => void;
 };
 
@@ -27,11 +20,17 @@ const ZOOM_MIN = 0.72;
 const ZOOM_MAX = 1.42;
 const NPC_SPEED = 2.4; // world units per second
 
-export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Props) {
+const ROOM_DRAWERS = {
+  ballroom: drawBallroom,
+  "card-room": drawCardRoom,
+  "supper-room": drawSupperRoom,
+} as const;
+
+export default function RoomCanvas({ roomId, player, npcTargets, onNpcArrived }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const zoomRef = useRef(1);
-  const propsRef = useRef({ player, npcTargets, onNpcArrived });
-  propsRef.current = { player, npcTargets, onNpcArrived };
+  const propsRef = useRef({ roomId, player, npcTargets, onNpcArrived });
+  propsRef.current = { roomId, player, npcTargets, onNpcArrived };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -63,7 +62,10 @@ export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Pro
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
-    const npcState = new Map<string, { x: number; y: number; face: number; arrived: boolean }>();
+    // Keyed by room so a figure re-spawns (rather than teleporting in) if
+    // the same id reappears after the player has changed rooms.
+    let npcState = new Map<string, { x: number; y: number; face: number; arrived: boolean }>();
+    let lastRoomId = propsRef.current.roomId;
     let lastTick = performance.now();
 
     let raf = 0;
@@ -71,7 +73,12 @@ export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Pro
       const dt = Math.min(0.05, (now - lastTick) / 1000);
       lastTick = now;
 
-      const { player: p, npcTargets: targets, onNpcArrived: onArrived } = propsRef.current;
+      const { roomId: room, player: p, npcTargets: targets, onNpcArrived: onArrived } = propsRef.current;
+      if (room !== lastRoomId) {
+        npcState = new Map();
+        lastRoomId = room;
+      }
+
       const isPhone = width < 700;
       const baseScale = (isPhone ? 30 : 38) * zoomRef.current;
       const figScale = Math.max(isPhone ? 1.05 : 0.9, baseScale / 34);
@@ -86,7 +93,7 @@ export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Pro
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const npcFigures: BallroomFigure[] = targets.map((t) => {
+      const npcFigures: RoomFigure[] = targets.map((t) => {
         let s = npcState.get(t.id);
         if (!s) {
           const start = t.spawnAt ?? { x: t.x, y: t.y };
@@ -115,12 +122,13 @@ export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Pro
           kind: t.kind,
           color: t.color,
           label: t.label,
+          seated: t.seated,
           face: s.face,
-          moving: !arrived,
+          moving: t.forceMoving || !arrived,
         };
       });
 
-      const figures: BallroomFigure[] = [
+      const figures: RoomFigure[] = [
         ...npcFigures,
         {
           id: "elizabeth",
@@ -134,7 +142,7 @@ export default function BallroomCanvas({ player, npcTargets, onNpcArrived }: Pro
         },
       ];
 
-      drawBallroom({
+      ROOM_DRAWERS[room]({
         ctx,
         w: width,
         h: height,
