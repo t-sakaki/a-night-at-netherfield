@@ -1,6 +1,8 @@
 import type { LocalizedText } from "@/data/characters";
 import { COLLINS_INTERLUDE } from "@/data/collinsInterlude";
 import { DARCY_ACCEPT_RESULT, DARCY_ASK, DARCY_DECLINE_RESULT } from "@/data/darcyRequest";
+import { MRS_BENNET_INTERLUDE } from "@/data/mrsBennetInterlude";
+import { CARD_ROOM_HOTSPOT, CHARLOTTE_HOTSPOT, JANE_BINGLEY_GOSSIP } from "@/data/ambience";
 
 /**
  * Single source of truth for every spoken line in the game, keyed by the
@@ -9,7 +11,11 @@ import { DARCY_ACCEPT_RESULT, DARCY_ASK, DARCY_DECLINE_RESULT } from "@/data/dar
  */
 export const VOICE_LINES: Record<string, LocalizedText> = {
   ...Object.fromEntries(COLLINS_INTERLUDE.map((line) => [line.id, line.text])),
+  ...Object.fromEntries(MRS_BENNET_INTERLUDE.map((line) => [line.id, line.text])),
   "darcy-ask": DARCY_ASK,
   "darcy-accept-result": DARCY_ACCEPT_RESULT,
   "darcy-decline-result": DARCY_DECLINE_RESULT,
+  [CHARLOTTE_HOTSPOT.id]: CHARLOTTE_HOTSPOT.text,
+  [CARD_ROOM_HOTSPOT.id]: CARD_ROOM_HOTSPOT.text,
+  [JANE_BINGLEY_GOSSIP.id]: JANE_BINGLEY_GOSSIP.text,
 };
