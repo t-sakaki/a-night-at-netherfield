@@ -7,8 +7,15 @@ export type VoiceLang = "en" | "ja";
  */
 export class VoiceManager {
   private current: HTMLAudioElement | null = null;
+  private muted = false;
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (muted) this.stop();
+  }
 
   play(id: string, lang: VoiceLang, text: string): void {
+    if (this.muted) return;
     this.stop();
 
     let fellBack = false;

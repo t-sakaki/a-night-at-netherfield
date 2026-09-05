@@ -76,6 +76,7 @@ export default function App() {
 
   const [fading, setFading] = useState(false);
   const [toast, setToast] = useState<{ id: string; text: LocalizedText } | null>(null);
+  const [muted, setMuted] = useState(false);
   const [supperInterludeActive, setSupperInterludeActive] = useState(false);
   const supperInterludeActiveRef = useRef(false);
   supperInterludeActiveRef.current = supperInterludeActive;
@@ -416,6 +417,15 @@ export default function App() {
     joystickRef.current = vec;
   }, []);
 
+  const toggleMuted = useCallback(() => {
+    setMuted((prev) => {
+      const next = !prev;
+      audioRef.current?.setMuted(next);
+      voiceRef.current?.setMuted(next);
+      return next;
+    });
+  }, []);
+
   const beginEvening = useCallback(() => {
     audioRef.current?.start();
     audioRef.current?.setMood("free-roam");
@@ -430,6 +440,16 @@ export default function App() {
     <div className="relative h-full w-full">
       <RoomCanvas roomId={currentRoom} player={player} npcTargets={npcTargets} onNpcArrived={handleNpcArrived} />
       <TouchJoystick onMove={onJoystickMove} />
+
+      <button
+        type="button"
+        onClick={toggleMuted}
+        aria-label={muted ? "Unmute" : "Mute"}
+        aria-pressed={muted}
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-lg leading-none text-white/80 hover:bg-black/60"
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
 
       <div
         className="pointer-events-none absolute inset-0 bg-black transition-opacity duration-200"

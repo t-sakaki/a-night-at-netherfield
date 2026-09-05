@@ -13,6 +13,8 @@ export type MusicMood =
 type MoodTarget = { ensemble: number; solo: number; cutoff: number; wobble: number };
 
 const RAMP_SEC = 1.4;
+const MASTER_VOLUME = 0.5;
+const MUTE_RAMP_SEC = 0.15;
 
 const MOOD_TARGETS: Record<MusicMood, MoodTarget> = {
   title: { ensemble: 0.35, solo: 0, cutoff: 700, wobble: 0 },
@@ -35,10 +37,12 @@ const MOOD_TARGETS: Record<MusicMood, MoodTarget> = {
  */
 export class AudioManager {
   private ctx: AudioContext | null = null;
+  private master: GainNode | null = null;
   private ensembleGain: GainNode | null = null;
   private ensembleFilter: BiquadFilterNode | null = null;
   private soloGain: GainNode | null = null;
   private wobbleDepth: GainNode | null = null;
+  private muted = false;
 
   start(): void {
     if (this.ctx) {
@@ -50,7 +54,7 @@ export class AudioManager {
     void ctx.resume();
 
     const master = ctx.createGain();
-    master.gain.value = 0.5;
+    master.gain.value = this.muted ? 0 : MASTER_VOLUME;
     master.connect(ctx.destination);
 
     const ensembleFilter = ctx.createBiquadFilter();
@@ -75,12 +79,24 @@ export class AudioManager {
     wobbleDepth.connect(ensembleFilter.frequency);
     wobbleLfo.start();
 
+    this.master = master;
     this.ensembleGain = ensembleGain;
     this.ensembleFilter = ensembleFilter;
     this.soloGain = soloGain;
     this.wobbleDepth = wobbleDepth;
 
     this.scheduleLoopChunk();
+  }
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    const ctx = this.ctx;
+    const master = this.master;
+    if (!ctx || !master) return;
+    const t = ctx.currentTime;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(master.gain.value, t);
+    master.gain.linearRampToValueAtTime(muted ? 0 : MASTER_VOLUME, t + MUTE_RAMP_SEC);
   }
 
   setMood(mood: MusicMood): void {
