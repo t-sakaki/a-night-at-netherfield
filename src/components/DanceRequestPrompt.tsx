@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import type { LocalizedText } from "@/data/characters";
+import { CHARACTERS, type LocalizedText } from "@/data/characters";
+import { CharacterPortrait } from "@/components/CharacterPortrait";
 
 type Props = {
   askText: LocalizedText;
@@ -20,7 +21,19 @@ export default function DanceRequestPrompt({ askText, remainingMs, totalMs, onDe
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/50 p-6">
       <div className="w-full max-w-md rounded-lg border border-white/15 bg-[#211712]/95 p-6 shadow-xl">
-        <p className="text-lg leading-relaxed">{askText.en}</p>
+        <div className="flex items-start gap-4">
+          <CharacterPortrait
+            id={CHARACTERS.darcy.id}
+            kind={CHARACTERS.darcy.kind}
+            color={CHARACTERS.darcy.color}
+            size={56}
+            title={CHARACTERS.darcy.name.en}
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs uppercase tracking-widest text-white/50">{CHARACTERS.darcy.name.en}</p>
+            <p className="mt-1 text-lg leading-relaxed">{askText.en}</p>
+          </div>
+        </div>
         <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
           <div
             className="h-full bg-amber-400/80 transition-[width] duration-100 ease-linear"

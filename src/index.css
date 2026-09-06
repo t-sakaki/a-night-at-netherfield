@@ -22,6 +22,18 @@ button {
   font-family: inherit;
 }
 
+/* Portrait framing */
+.living-portrait,
+.character-portrait {
+  display: block;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  background: transparent;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 214, 140, 0.25);
+}
+
 /* LivingPortrait procedural-face animation */
 .lp-body {
   animation: lp-sway 6.5s ease-in-out infinite alternate;
