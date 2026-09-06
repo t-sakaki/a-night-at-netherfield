@@ -67,9 +67,9 @@ export function drawSconces(
   for (const pt of points) {
     const p = project(pt.x, pt.y, pt.z);
     const flicker = 0.75 + 0.25 * Math.sin(time * 6 + pt.x * 3);
-    const r = 20 * flicker * (scale / 34);
+    const r = 26 * flicker * (scale / 34);
     const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
-    grad.addColorStop(0, `rgba(255,214,140,${0.5 * flicker})`);
+    grad.addColorStop(0, `rgba(255,222,160,${0.65 * flicker})`);
     grad.addColorStop(1, "rgba(255,214,140,0)");
     ctx.fillStyle = grad;
     ctx.beginPath();

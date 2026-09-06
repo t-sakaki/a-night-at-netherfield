@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { InterludeLine } from "@/data/collinsInterlude";
+import { CharacterPortrait } from "@/components/CharacterPortrait";
+import { CHARACTERS, type CharacterId } from "@/data/characters";
 
 type Props = {
   lines: InterludeLine[];
@@ -37,6 +39,7 @@ export default function InterludeOverlay({ lines, onComplete, onLineChange }: Pr
   }
 
   const line = lines[index];
+  const speaker = line.speaker !== "narration" ? CHARACTERS[line.speaker as CharacterId] : null;
 
   return (
     <div className="absolute inset-0 flex items-end justify-center bg-black/40 p-6">
@@ -44,15 +47,24 @@ export default function InterludeOverlay({ lines, onComplete, onLineChange }: Pr
         ref={buttonRef}
         type="button"
         onClick={advance}
-        className="w-full max-w-lg rounded-lg border border-white/15 bg-[#211712]/95 p-5 text-left shadow-xl"
+        className="flex w-full max-w-lg items-start gap-4 rounded-lg border border-white/15 bg-[#211712]/95 p-5 text-left shadow-xl"
       >
-        {line.speaker !== "narration" && (
-          <p className="text-xs uppercase tracking-widest text-white/50">{line.speaker}</p>
+        {speaker && (
+          <CharacterPortrait
+            id={speaker.id}
+            kind={speaker.kind}
+            color={speaker.color}
+            size={56}
+            title={speaker.name.en}
+          />
         )}
-        <p className={`mt-2 text-lg leading-relaxed ${line.speaker === "narration" ? "italic text-white/80" : ""}`}>
-          {line.text.en}
-        </p>
-        <p className="mt-3 text-xs text-white/40">Click, Space, or Enter to continue</p>
+        <div className="min-w-0 flex-1">
+          {speaker && <p className="text-xs uppercase tracking-widest text-white/50">{speaker.name.en}</p>}
+          <p className={`mt-2 text-lg leading-relaxed ${line.speaker === "narration" ? "italic text-white/80" : ""}`}>
+            {line.text.en}
+          </p>
+          <p className="mt-3 text-xs text-white/40">Click, Space, or Enter to continue</p>
+        </div>
       </button>
     </div>
   );

@@ -1,6 +1,6 @@
 export type LocalizedText = { en: string; ja: string };
 
-export type CharacterId = "elizabeth" | "collins" | "darcy" | "charlotte" | "jane" | "bingley";
+export type CharacterId = "elizabeth" | "collins" | "darcy" | "charlotte" | "jane" | "bingley" | "mrs-bennet";
 export type CharacterKind = "lady" | "gent";
 
 export type CharacterTemplate = {
@@ -53,5 +53,12 @@ export const CHARACTERS: Record<CharacterId, CharacterTemplate> = {
     color: "#a85f4a",
     name: { en: "Mr. Bingley", ja: "ビングリー氏" },
     title: { en: "Master of Netherfield", ja: "ネザーフィールドの主" },
+  },
+  "mrs-bennet": {
+    id: "mrs-bennet",
+    kind: "lady",
+    color: "#b06a8f",
+    name: { en: "Mrs. Bennet", ja: "ベネット夫人" },
+    title: { en: "Elizabeth's mother", ja: "エリザベスの母" },
   },
 };
